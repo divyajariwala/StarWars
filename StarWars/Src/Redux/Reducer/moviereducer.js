@@ -1,6 +1,13 @@
-import {ADD_MOVIE} from '../Action/movieaction';
+import { ADD_MOVIE } from '../Action/movieaction';
 const initialState = {
-  movie: [],
+  Movie: {
+    title: '',
+    episode_id: '',
+    opening_crawl: '',
+    director: '',
+    producer: '',
+    release_date: '',
+  },
 };
 
 function locationReducer(state = initialState, action) {
@@ -9,8 +16,9 @@ function locationReducer(state = initialState, action) {
     case ADD_MOVIE:
       return {
         ...state,
-        movie: action.paylod,
+        Movie: action.paylod.Movie,
       };
+
 
     default:
       return state;

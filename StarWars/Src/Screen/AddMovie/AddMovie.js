@@ -1,13 +1,16 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import {
   View,
   Text,
   TextInput,
   SafeAreaView,
   TouchableOpacity,
+  StyleSheet,
+  Platform,
 } from 'react-native';
-import {connect} from 'react-redux';
-
+import { connect } from 'react-redux';
+import { addmovie } from '../../Redux/Action/movieaction';
+import CommonStyle from '../../Constant/Commonstyle';
 class AddMovie extends Component {
   constructor(props) {
     super(props);
@@ -22,13 +25,18 @@ class AddMovie extends Component {
       },
     };
   }
-
+  storeMovie = () => {
+    this.props.addPickupLocationActions({})
+  }
   render() {
-    const {Movie} = this.state;
+    const { Movie } = this.state;
     return (
-      <SafeAreaView style={{flex: 1}}>
-        <View>
-          <Text> AddMovie </Text>
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={CommonStyle.container}>
+          <Text style={{
+            fontSize: 22,
+            fontWeight: 'bold'
+          }}> AddMovie </Text>
           <TextInput
             value={Movie.title}
             placeholder="Movie Title"
@@ -40,6 +48,7 @@ class AddMovie extends Component {
                 },
               }))
             }
+            style={style.textinputstyle}
           />
           <TextInput
             value={Movie.episode_id}
@@ -52,6 +61,7 @@ class AddMovie extends Component {
                 },
               }))
             }
+            style={style.textinputstyle}
           />
           <TextInput
             value={Movie.opening_crawl}
@@ -64,6 +74,7 @@ class AddMovie extends Component {
                 },
               }))
             }
+            style={style.textinputstyle}
           />
           <TextInput
             value={Movie.director}
@@ -76,6 +87,7 @@ class AddMovie extends Component {
                 },
               }))
             }
+            style={style.textinputstyle}
           />
           <TextInput
             value={Movie.producer}
@@ -88,6 +100,7 @@ class AddMovie extends Component {
                 },
               }))
             }
+            style={style.textinputstyle}
           />
           <TextInput
             value={Movie.release_date}
@@ -100,19 +113,40 @@ class AddMovie extends Component {
                 },
               }))
             }
+            style={style.textinputstyle}
           />
 
-          <TouchableOpacity>
-            <Text>Add Array</Text>
+          <TouchableOpacity onPress={() => this.storeMovie()} style={style.buttonStyle}>
+            <Text>Add Movie</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
 }
-const mapStateToProps = (state) => {
-  const {subjects} = state;
-  return {subjects};
-};
+const style = StyleSheet.create({
+  textinputstyle: {
+    borderBottomColor: 'black',
+    borderBottomWidth: 1,
+    marginTop: Platform.OS = "ios" ? 20 : null
+  },
+  buttonStyle: {
+    borderColor: 'black',
+    borderWidth: 1,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: Platform.OS = "ios" ? 20 : 20,
+    width: '50%'
+  }
+})
 
-export default connect(mapStateToProps)(AddMovie);
+
+function mapDispatchToProps(dispatch) {
+  return {
+    addPickupLocationActions: (movie) => dispatch(addmovie(movie)),
+
+  };
+}
+
+export default connect(null, mapDispatchToProps)(AddMovie);

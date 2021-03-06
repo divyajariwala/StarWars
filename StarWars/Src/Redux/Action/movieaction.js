@@ -1,8 +1,10 @@
-import * as movie from '../ActionType';
+import * as Movie from '../ActionType';
 
 export const addmovie = (movie) => {
   return {
-    type: movie.ADD_MOVIE,
+    type: Movie.ADD_MOVIE,
     payload: movie,
   };
 };
+
+
