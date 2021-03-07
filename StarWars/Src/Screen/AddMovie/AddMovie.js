@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,9 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
-import { connect } from 'react-redux';
-import { addmovie } from '../../Redux/Action/movieaction';
+import {connect} from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {addmovie} from '../../Redux/Action/movieaction';
 import CommonStyle from '../../Constant/Commonstyle';
 class AddMovie extends Component {
   constructor(props) {
@@ -25,18 +26,43 @@ class AddMovie extends Component {
       },
     };
   }
-  storeMovie = () => {
-    this.props.addPickupLocationActions({})
-  }
-  render() {
+  storeMovie = async () => {
+    // this.props.addPickupLocationActions({});
     const { Movie } = this.state;
+    console.log('Movie', Movie)
+    try {
+      const value = await AsyncStorage.getItem('movies');
+      console.log('value', value)
+      if(value !== null) {
+        const parseMovie = JSON.parse(value);
+        console.log(parseMovie)
+        parseMovie.push(Movie);
+        const jsonMovie = JSON.stringify(parseMovie);
+        await AsyncStorage.setItem('movies', jsonMovie);
+        console.log('Inside if ')
+      } else {
+        const jsonMovie = JSON.stringify(Movie);
+        await AsyncStorage.setItem('movies', jsonMovie);
+        console.log('Inside else ');
+      }
+    } catch (e) {
+      // saving error
+      console.log(e)
+    }
+  };
+  render() {
+    const {Movie} = this.state;
     return (
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{flex: 1}}>
         <View style={CommonStyle.container}>
-          <Text style={{
-            fontSize: 22,
-            fontWeight: 'bold'
-          }}> AddMovie </Text>
+          <Text
+            style={{
+              fontSize: 22,
+              fontWeight: 'bold',
+            }}>
+            {' '}
+            AddMovie{' '}
+          </Text>
           <TextInput
             value={Movie.title}
             placeholder="Movie Title"
@@ -116,7 +142,9 @@ class AddMovie extends Component {
             style={style.textinputstyle}
           />
 
-          <TouchableOpacity onPress={() => this.storeMovie()} style={style.buttonStyle}>
+          <TouchableOpacity
+            onPress={() => this.storeMovie()}
+            style={style.buttonStyle}>
             <Text>Add Movie</Text>
           </TouchableOpacity>
         </View>
@@ -128,7 +156,7 @@ const style = StyleSheet.create({
   textinputstyle: {
     borderBottomColor: 'black',
     borderBottomWidth: 1,
-    marginTop: Platform.OS = "ios" ? 20 : null
+    marginTop: Platform.OS === 'ios' ? 20 : null,
   },
   buttonStyle: {
     borderColor: 'black',
@@ -136,16 +164,14 @@ const style = StyleSheet.create({
     backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: Platform.OS = "ios" ? 20 : 20,
-    width: '50%'
-  }
-})
-
+    marginTop: Platform.OS === 'ios' ? 20 : 20,
+    width: '50%',
+  },
+});
 
 function mapDispatchToProps(dispatch) {
   return {
     addPickupLocationActions: (movie) => dispatch(addmovie(movie)),
-
   };
 }
 

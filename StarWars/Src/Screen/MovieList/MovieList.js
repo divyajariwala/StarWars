@@ -1,11 +1,21 @@
-import React, { Component } from 'react';
-import { View, Text, SafeAreaView, FlatList, Platform, UIManager, LayoutAnimation, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import React, {Component} from 'react';
+import {
+  View,
+  Text,
+  SafeAreaView,
+  FlatList,
+  Platform,
+  UIManager,
+  LayoutAnimation,
+  TouchableOpacity,
+  StyleSheet,
+  TextInput,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ListView from '../../Components/ListView/ListView';
 import EmptyList from '../../Components/EmptyList/EmptyList';
-import * as  List from '../../Service/Movies';
 import axios from 'axios';
-import { Actions } from 'react-native-router-flux'
-import style from '../../Components/EmptyList/Style';
+import {Actions} from 'react-native-router-flux';
 import CommonStyle from '../../Constant/Commonstyle';
 
 class MovieList extends Component {
@@ -17,33 +27,68 @@ class MovieList extends Component {
       expanded: false,
       isFetching: false,
       search: '',
-      filterData: []
+      filterData: [],
     };
     if (Platform.OS === 'android') {
       UIManager.setLayoutAnimationEnabledExperimental(true);
     }
-    this.getMovieList = this.getMovieList.bind(this);
-
+    // this.getMovieList = this.getMovieList.bind(this);
   }
-  componentDidMount() {
-    this.getMovieList()
+  async componentDidMount() {
+    const value = await AsyncStorage.getItem('movies');
+    if (value === null) {
+      this.getMovieList();
+    } else {
+      const parseMovie = JSON.parse(value);
+      this.setState({
+        movieList: parseMovie,
+        filterData: parseMovie,
+      });
+    }
   }
   getMovieList = () => {
-    axios.get('https://swapi.dev/api/films/')
-      .then(response => {
+    axios
+      .get('https://swapi.dev/api/films/')
+      .then(async (response) => {
         console.log(response);
         console.log(response.data.results);
         console.log(response.data.results[0].title);
         this.setState({
           movieList: response.data.results,
-          filterData: response.data.results
-        })
-        console.log("List", this.state.movieList);
+          filterData: response.data.results,
+          isFetching: false,
+        });
+        console.log('List', this.state.movieList);
+        await AsyncStorage.removeItem('movies');
+        this.setDataInAsync(response.data.results);
       })
       .catch(function (error) {
         console.log(error);
-      })
-  }
+      });
+  };
+
+  setDataInAsync = async (MovieList) => {
+    console.log('MovieList', MovieList);
+    try {
+      const value = await AsyncStorage.getItem('movies');
+      console.log('value', value);
+      if (value !== null) {
+        const parseMovie = JSON.parse(value);
+        console.log(parseMovie);
+        parseMovie.push(MovieList);
+        const jsonMovie = JSON.stringify(parseMovie);
+        await AsyncStorage.setItem('movies', jsonMovie);
+        console.log('Inside if ');
+      } else {
+        const jsonMovie = JSON.stringify(MovieList);
+        await AsyncStorage.setItem('movies', jsonMovie);
+        console.log('Inside else ');
+      }
+    } catch (e) {
+      // saving error
+      console.log(e);
+    }
+  };
 
   changeLayout = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -54,53 +99,47 @@ class MovieList extends Component {
     //       !array[placeindex]['isExpanded'])
     //     : (array[placeindex]['isExpanded'] = false),
     // );
-    this.setState({ expanded: !this.state.expanded });
-
-  }
+    this.setState({expanded: !this.state.expanded});
+  };
   onRefresh() {
-    this.setState({ isFetching: true })
-    this.getMovieList()
+    this.setState({isFetching: true});
+    this.getMovieList();
   }
   searchFilterFunction = (text) => {
+    if (text) {
+      const newData = this.state.movieList.filter(function (item) {
+        const itemData = item.title
+          ? item.title.toUpperCase()
+          : ''.toUpperCase();
+        const textData = text.toUpperCase();
+        return itemData.indexOf(textData) > -1;
+      });
 
-    if (text !== "") {
-      const newData = this.state.movieList.filter(
-        function (item) {
-          const itemData = item.title
-            ? item.title.toUpperCase()
-            : ''.toUpperCase();
-          const textData = text.toUpperCase();
-          return itemData.indexOf(textData) > -1;
-        });
-
-    
       this.setState({
-
         filterData: newData,
         search: text,
-
-      })
-      console.log("Serach", newData);
-
+      });
+      console.log('Serach', newData);
     } else {
-    
       this.setState({
-
-        filterData: this.state.movieList,
+        // filterData: this.state.movieList,
         search: text,
-      })
+      });
     }
   };
   render() {
     return (
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{flex: 1}}>
         <View style={CommonStyle.container}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <View style={{ justifyContent: 'flex-start' }}>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+            <View style={{justifyContent: 'flex-start'}}>
               <Text style={Style.Heading}> MovieList </Text>
             </View>
-            <View style={{ justifyContent: 'flex-end' }}>
-              <TouchableOpacity onPress={() => { Actions.jump('AddMovie') }}>
+            <View style={{justifyContent: 'flex-end'}}>
+              <TouchableOpacity
+                onPress={() => {
+                  Actions.jump('AddMovie');
+                }}>
                 <Text style={Style.Heading}>Add </Text>
               </TouchableOpacity>
             </View>
@@ -113,10 +152,8 @@ class MovieList extends Component {
             placeholder="Search Here"
           />
           <FlatList
-
             data={this.state.filterData}
             showsVerticalScrollIndicator={false}
-
             keyExtractor={(item, index) => index.toString()}
             onRefresh={() => this.onRefresh()}
             refreshing={this.state.isFetching}
@@ -130,9 +167,7 @@ class MovieList extends Component {
               );
             }}
             ListEmptyComponent={() => {
-              return (
-                <EmptyList />
-              )
+              return <EmptyList />;
             }}
           />
         </View>
@@ -141,10 +176,9 @@ class MovieList extends Component {
   }
 }
 const Style = StyleSheet.create({
-
   Heading: {
     fontSize: 22,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   textInputStyle: {
     height: 40,
@@ -154,6 +188,6 @@ const Style = StyleSheet.create({
     borderColor: '#009688',
     backgroundColor: '#FFFFFF',
   },
-})
+});
 
 export default MovieList;
